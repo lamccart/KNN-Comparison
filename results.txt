@@ -1,0 +1,6 @@
+K: 3, Validation Error: 0.913
+K: 3, Validation Error: 0.913
+K: 3, Validation Error: 0.9
+K: 3, Validation Error: 0.135
+K: 3, Validation Error: 0.135
+K: 3, Validation Error: 0.098

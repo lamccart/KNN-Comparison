@@ -13,8 +13,7 @@ public class NaiveKNN {
      * The constructor of naive KNN
      */
     public NaiveKNN() {
-
-        // TODO
+        KNN = new PriorityQueue<>();
     }
 
     /**
@@ -23,7 +22,7 @@ public class NaiveKNN {
      */
     public void build(Point[] points) {
 
-        // TODO
+        trainingPoints = points;
     }
 
     /**
@@ -34,9 +33,25 @@ public class NaiveKNN {
      */
     public Point[] findKNearestNeighbor(Point queryPoint, int k) {
         
-        // TODO
+        //Loop through all trainingPoints and set their distance to queryPoint
+        for(Point p : trainingPoints){
+            p.setSquareDisToQueryPoint(queryPoint);
+        }
 
-        return null;
+        //Loop through each trainingPoint and update KNN using that point
+        for(Point p : trainingPoints){
+            updateKNN(p, k);
+        }
+
+        Point[] arrayKNN = new Point[KNN.size()];
+        //Reset the queue and return the array of nearest neighbors
+        int size = KNN.size();
+        for(int i = 0; i < size; i++){
+            arrayKNN[i] = KNN.poll();
+        }
+
+        //Return the k nearest neighbors
+        return arrayKNN;
     }
 
     /**
@@ -51,8 +66,18 @@ public class NaiveKNN {
      * @param k number of points in KNN
      */
     private void updateKNN(Point p, int k) {
-        
-        // TODO
+
+        //If there are not k neighbors add the point to the queue
+        if(KNN.size() < k){
+            KNN.add(p);
+            largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
+        }else{
+            if(largestDisInKNN > p.getSquareDisToQueryPoint()){
+                KNN.poll();
+                KNN.add(p);
+                largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
+            }
+        }
     }
 
 

@@ -1,9 +1,9 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.Scanner;
 
 /**
@@ -57,6 +57,8 @@ import java.util.Scanner;
 public class KNNClassifier {
 
     private static final int FLAG_INDEX = 3;
+    private static final int TRAINING_INDEX = 1;
+    private static final int INPUT_INDEX = 2;
 
     /**
      * The main method that drives this program.
@@ -65,22 +67,52 @@ public class KNNClassifier {
     public static void main(String args[]) {
         int k = Integer.parseInt(args[0]);
         String flag = args[FLAG_INDEX];
+        NaiveKNN trainingData = new NaiveKNN();
 
-        // TODO: read the training data and use it to build KNN training data
-        
-        if (flag.equals("validation")) {
-            // if data file is with label, it contains validation data
-            Point[] validationData;
-            int errorCount = 0;
+        //read the training data and use it to build KNN training data
+        trainingData.build(readData(args[TRAINING_INDEX], true));
+        try{
+            if (flag.equals("validation")) {
+                // if data file is with label, it contains validation data
+                Point[] validationData;
+                int errorCount = 0;
 
-            // TODO: compute the validation error
+                validationData = readData(args[INPUT_INDEX], true);
 
-            double errorPercent = (double) errorCount / validationData.length;
-            System.out.println("K: " + k + ", Validation Error: " + errorPercent);
-        }
-        else { 
-            // data file is test data, it contains data that we want to find KNN
-            //TODO
+                for(Point p : validationData){
+                    Point[] neighbors;
+                    neighbors = trainingData.findKNearestNeighbor(p, k);
+                    if(mostFreqLabel(neighbors) != p.getLabel()){
+                        errorCount++;
+                    }
+                }
+
+                double errorPercent = (double) errorCount / validationData.length;
+                PrintWriter pw = new PrintWriter(new FileOutputStream(new
+                        File("results.txt"),true));
+                pw.println("K: " + k + ", Validation Error: " + errorPercent);
+                pw.close();
+            }
+            else {
+                // data file is test data, it contains data that we want to find KNN
+                Point[] testData;
+
+                testData = readData(args[INPUT_INDEX], false);
+
+                PrintWriter pw = new PrintWriter(new FileOutputStream(new
+                        File("results.txt"),true));
+
+                for(Point p : testData){
+                    Point[] neighbors;
+                    neighbors = trainingData.findKNearestNeighbor(p, k);
+
+                    pw.println(mostFreqLabel(neighbors));
+                }
+
+                pw.close();
+            }
+        } catch (IOException e) {
+            System.out.println("File not found!");
         }
 
     }
@@ -138,8 +170,22 @@ public class KNNClassifier {
     public static int mostFreqLabel(Point[] points) {
 
         HashMap<Integer, Integer> countMap = new HashMap<>();
+        for(Point p : points){
+            if(!countMap.containsKey(p.getLabel())){
+                countMap.put(p.getLabel(), 1);
+            }else{
+                countMap.put(p.getLabel(), countMap.get(p.getLabel()) + 1);
+            }
+        }
 
-        // TODO
+        Map.Entry<Integer, Integer> maxEntry = null;
+
+        for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                maxEntry = entry;
+            }
+        }
+        return maxEntry.getKey();
     }
 
 }
