@@ -1,4 +1,10 @@
 /**
+ * Name: Liam McCarthy
+ * PID: A14029718
+ * Since: 11/25/2018
+ */
+
+/**
  * The Point class which defines a data with n-dimensional features with its label
  *
  */

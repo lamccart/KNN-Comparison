@@ -5,10 +5,10 @@ public class RuntimeComparison {
     public static int MIN_RANDOM = 0; // the min value for random numbers
     public static int MAX_RANDOM = 100; // the max value for random numbers
 
-    public static int NUM_DIM; // number of dimensions
-    public static int TRAINING_SIZE; // the size of the training data
-    public static int TEST_SIZE; // the size of the test data to find KNN
-    public static int K; // number of nearest neighbors to find
+    public static int NUM_DIM = 10; // number of dimensions
+    public static int TRAINING_SIZE = 10000; // the size of the training data
+    public static int TEST_SIZE = 10000; // the size of the test data to find KNN
+    public static int K = 1; // number of nearest neighbors to find
 
     /**
      * Main method that drives the program

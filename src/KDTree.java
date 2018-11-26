@@ -1,3 +1,8 @@
+/**
+ * Name: Liam McCarthy
+ * PID: A14029718
+ * Since: 11/25/2018
+ */
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
@@ -14,6 +19,7 @@ public class KDTree {
     private PriorityQueue<Point> KNN; // priority queue containing k nearest neighbors
     private int size;
     private int height;
+    private static final int MID = 2;
 
     /**
      * Inner class which defines a KD node
@@ -106,7 +112,11 @@ public class KDTree {
      */
     public KDTree(int numDim) {
 
-        // TODO
+        root = new KDNode();
+        this.numDim = numDim;
+        KNN = new PriorityQueue<>();
+        size = 0;
+        height = 0;
     }
 
     /**
@@ -114,8 +124,17 @@ public class KDTree {
      * @param points the given set of points to build the KD tree
      */
     public void build(Point[] points) {
-
-        // TODO
+        //Sort all the points of the first dimension
+        Arrays.sort(points, 0, points.length - 1,
+                Comparator.comparingDouble(p -> p.valueAt(0)));
+        //Find the median and set it as root node
+        int medianIndex = points.length/MID;
+        root = new KDNode(points[medianIndex]);
+        size++;
+        height++;
+        //Build the subtrees with each side of array and next dimension
+        root.setLeft(buildSubtree(points, 0, medianIndex, 1, 1));
+        root.setRight(buildSubtree(points, medianIndex+1, points.length, 1, 1));
     }
 
     /**
@@ -127,7 +146,31 @@ public class KDTree {
      */
     public Point[] findKNearestNeighbor(Point queryPoint, int k) {
 
-        // TODO
+        this.k = k;
+
+        root.getPoint().setSquareDisToQueryPoint(queryPoint);
+        updateKNN(root.getPoint());
+        if(queryPoint.getFeatures()[0] < root.getPoint().getFeatures()[0]){
+            findKNNHelper(root.getLeft(), queryPoint, 1);
+            if(largestDisInKNN > Math.pow(root.getPoint().getFeatures()[0] - queryPoint.getFeatures()[0], MID)){
+                findKNNHelper(root.getRight(), queryPoint, 1);
+            }
+        }else{
+            findKNNHelper(root.getRight(), queryPoint, 1);
+            if(largestDisInKNN > Math.pow(root.getPoint().getFeatures()[0] - queryPoint.getFeatures()[0], MID)){
+                findKNNHelper(root.getLeft(), queryPoint, 1);
+            }
+        }
+
+        Point[] arrayKNN = new Point[KNN.size()];
+        //Reset the queue and return the array of nearest neighbors
+        int size = KNN.size();
+        for(int i = 0; i < size; i++){
+            arrayKNN[i] = KNN.poll();
+        }
+
+        //Return the k nearest neighbors
+        return arrayKNN;
     }
 
     /**
@@ -142,8 +185,50 @@ public class KDTree {
      * @return the parent of the subtree
      */
     private KDNode buildSubtree(Point[] points, int start, int end, int d, int height) {
-        
-        // TODO
+
+        //base case
+        if(end - start <= 1){
+            if(start == end){
+                return null;
+            }else{
+                KDNode newNode;
+                //Make new node with median
+                newNode = new KDNode(points[start]);
+                newNode.setRight(null);
+                newNode.setLeft(null);
+                //Increase size
+                size++;
+                this.height++;
+                return newNode;
+            }
+        }else{
+            KDNode newNode;
+            // Sort the subset of points array based on the value at current dimension
+            Arrays.sort(points, start, end, Comparator.comparingDouble(p -> p.valueAt(d)));
+            //Find median
+            int medianIndex = (start+ end) / MID;
+            //Make new node with median
+            newNode = new KDNode(points[medianIndex]);
+            //Increase size
+            size++;
+            //Build subtrees for the left and right nodes
+            newNode.setLeft(buildSubtree(points, start, medianIndex, (d+1) % numDim, height+1));
+            newNode.setRight(buildSubtree(points, medianIndex + 1, end, (d+1) % numDim, height+1));
+            //Set parents of the children
+            if(newNode.getLeft() != null) {
+                newNode.getLeft().setParent(newNode);
+            }
+            if(newNode.getRight() != null){
+                newNode.getRight().setParent(newNode);
+            }
+            //Update the height
+            if(height+1 > this.height && newNode.getLeft() != null && newNode.getRight() != null){
+                this.height = height+1;
+            }
+            return newNode;
+        }
+
+
     }
 
     /**
@@ -154,8 +239,24 @@ public class KDTree {
      * @param d the current dimension to look at
      */
     private void findKNNHelper(KDNode n, Point queryPoint, int d) {
-        
-        // TODO
+
+        //base case
+        if(n != null){
+            n.getPoint().setSquareDisToQueryPoint(queryPoint);
+            updateKNN(n.getPoint());
+            if(queryPoint.getFeatures()[d] < n.getPoint().getFeatures()[d]){
+                findKNNHelper(n.getLeft(), queryPoint, (d+1) % numDim);
+                if(largestDisInKNN > Math.pow(n.getPoint().getFeatures()[d] - queryPoint.getFeatures()[d], MID)){
+                    findKNNHelper(n.getRight(), queryPoint, (d+1) % numDim);
+                }
+            }else{
+                findKNNHelper(n.getRight(), queryPoint, (d+1) % numDim);
+                if(largestDisInKNN > Math.pow(n.getPoint().getFeatures()[d] - queryPoint.getFeatures()[d], MID)){
+                    findKNNHelper(n.getLeft(), queryPoint, (d+1) % numDim);
+                }
+            }
+        }
+
     }
 
     /**
@@ -170,7 +271,17 @@ public class KDTree {
      */
     private void updateKNN(Point p) {
 
-        // TODO
+        //If there are not k neighbors add the point to the queue
+        if(KNN.size() < k){
+            KNN.add(p);
+            largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
+        }else{
+            if(largestDisInKNN > p.getSquareDisToQueryPoint()){
+                KNN.poll();
+                KNN.add(p);
+                largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
+            }
+        }
     }
 
     /**

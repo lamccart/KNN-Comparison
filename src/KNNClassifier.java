@@ -1,9 +1,13 @@
+/**
+ * Name: Liam McCarthy
+ * PID: A14029718
+ * Since: 11/25/2018
+ */
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.Scanner;
 
 /**
@@ -67,10 +71,12 @@ public class KNNClassifier {
     public static void main(String args[]) {
         int k = Integer.parseInt(args[0]);
         String flag = args[FLAG_INDEX];
-        NaiveKNN trainingData = new NaiveKNN();
+        KDTree trainingData;
 
+        Point[] data = readData(args[TRAINING_INDEX], true);
+        trainingData = new KDTree(data[0].getNumDimension());
         //read the training data and use it to build KNN training data
-        trainingData.build(readData(args[TRAINING_INDEX], true));
+        trainingData.build(data);
         try{
             if (flag.equals("validation")) {
                 // if data file is with label, it contains validation data
@@ -92,8 +98,7 @@ public class KNNClassifier {
                         File("results.txt"),true));
                 pw.println("K: " + k + ", Validation Error: " + errorPercent);
                 pw.close();
-            }
-            else {
+            } else {
                 // data file is test data, it contains data that we want to find KNN
                 Point[] testData;
 
