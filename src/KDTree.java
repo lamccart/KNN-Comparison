@@ -112,9 +112,13 @@ public class KDTree {
      */
     public KDTree(int numDim) {
 
+        //Initialize empty root
         root = new KDNode();
+        //Set dimension
         this.numDim = numDim;
+        //Initialize KNN queue
         KNN = new PriorityQueue<>();
+        //Initialize size and height
         size = 0;
         height = 0;
     }
@@ -129,7 +133,9 @@ public class KDTree {
                 Comparator.comparingDouble(p -> p.valueAt(0)));
         //Find the median and set it as root node
         int medianIndex = points.length/MID;
+        //Set root to median
         root = new KDNode(points[medianIndex]);
+        //Increase size and height
         size++;
         height++;
         //Build the subtrees with each side of array and next dimension
@@ -146,18 +152,30 @@ public class KDTree {
      */
     public Point[] findKNearestNeighbor(Point queryPoint, int k) {
 
+        //Set k
         this.k = k;
 
+        //Set distance of root
         root.getPoint().setSquareDisToQueryPoint(queryPoint);
+        //Update KNN with root
         updateKNN(root.getPoint());
+        //Check if first dimension of queryPoint is less than root first dimension feature
         if(queryPoint.getFeatures()[0] < root.getPoint().getFeatures()[0]){
+            //if less than, find KNN for the left subtree of root
             findKNNHelper(root.getLeft(), queryPoint, 1);
+            //Check if right subtree needs to be also checked if largest distance of left subtree is greater than
+            //(root first dimension feature - queryPoint first dimension feature)^2
             if(largestDisInKNN > Math.pow(root.getPoint().getFeatures()[0] - queryPoint.getFeatures()[0], MID)){
+                //Find KNN for right subtree of root
                 findKNNHelper(root.getRight(), queryPoint, 1);
             }
         }else{
+            //if greater than or equal, find KNN for right subtree of root
             findKNNHelper(root.getRight(), queryPoint, 1);
+            //Check if left subtree needs to be also checked if largest distance of right subtree is greater than
+            //(root first dimension feature - queryPoint first dimension feature)^2
             if(largestDisInKNN > Math.pow(root.getPoint().getFeatures()[0] - queryPoint.getFeatures()[0], MID)){
+                //Find KNN for right subtree of root
                 findKNNHelper(root.getLeft(), queryPoint, 1);
             }
         }
@@ -188,15 +206,18 @@ public class KDTree {
 
         //base case
         if(end - start <= 1){
+            //If no more elements to sort through return null
             if(start == end){
                 return null;
             }else{
+                //Make one more node if one element left
                 KDNode newNode;
-                //Make new node with median
+                //Make new node with remaining element
                 newNode = new KDNode(points[start]);
+                //Set children to null
                 newNode.setRight(null);
                 newNode.setLeft(null);
-                //Increase size
+                //Increase size and height
                 size++;
                 this.height++;
                 return newNode;
@@ -240,18 +261,29 @@ public class KDTree {
      */
     private void findKNNHelper(KDNode n, Point queryPoint, int d) {
 
-        //base case
+        //base case condition
         if(n != null){
+            //Set distance of current node
             n.getPoint().setSquareDisToQueryPoint(queryPoint);
+            //Update KNN with current node
             updateKNN(n.getPoint());
+            //Check if queryPoint feature of current dimension is less than current nodes feature of current dimension
             if(queryPoint.getFeatures()[d] < n.getPoint().getFeatures()[d]){
+                //Recurse with left subtree of current node toggling dimension
                 findKNNHelper(n.getLeft(), queryPoint, (d+1) % numDim);
+                //Check if right subtree needs to be also checked if largest distance of left subtree is greater than
+                //(current node first dimension feature - queryPoint first dimension feature)^2
                 if(largestDisInKNN > Math.pow(n.getPoint().getFeatures()[d] - queryPoint.getFeatures()[d], MID)){
+                    //Recurse with right subtree of current node toggling dimension
                     findKNNHelper(n.getRight(), queryPoint, (d+1) % numDim);
                 }
             }else{
+                //Recurse with right subtree of current node toggling dimension
                 findKNNHelper(n.getRight(), queryPoint, (d+1) % numDim);
+                //Check if left subtree needs to be also checked if largest distance of right subtree is greater than
+                //(current node first dimension feature - queryPoint first dimension feature)^2
                 if(largestDisInKNN > Math.pow(n.getPoint().getFeatures()[d] - queryPoint.getFeatures()[d], MID)){
+                    //Recurse with left subtree of current node toggling dimension
                     findKNNHelper(n.getLeft(), queryPoint, (d+1) % numDim);
                 }
             }
@@ -273,12 +305,18 @@ public class KDTree {
 
         //If there are not k neighbors add the point to the queue
         if(KNN.size() < k){
+            //Add point to KNN
             KNN.add(p);
+            //Update largest distance
             largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
         }else{
+            //Check if passed in point has distance smaller than largest distance
             if(largestDisInKNN > p.getSquareDisToQueryPoint()){
+                //Remove point from top of heap
                 KNN.poll();
+                //Add point to heap
                 KNN.add(p);
+                //Update largest distance to top of heap points distance
                 largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
             }
         }

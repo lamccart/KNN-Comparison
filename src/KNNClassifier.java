@@ -69,11 +69,16 @@ public class KNNClassifier {
      * @param args the command line argument
      */
     public static void main(String args[]) {
+        //Set k from command line
         int k = Integer.parseInt(args[0]);
+        //Set flag from command line
         String flag = args[FLAG_INDEX];
+        //Declare trainingData
         KDTree trainingData;
 
+        //Create variable for the read data of the training data
         Point[] data = readData(args[TRAINING_INDEX], true);
+        //Create KD tree with training data array
         trainingData = new KDTree(data[0].getNumDimension());
         //read the training data and use it to build KNN training data
         trainingData.build(data);
@@ -83,17 +88,22 @@ public class KNNClassifier {
                 Point[] validationData;
                 int errorCount = 0;
 
+                //read data to create array to test KNN against
                 validationData = readData(args[INPUT_INDEX], true);
 
+                //Find the neighbors for each point
                 for(Point p : validationData){
                     Point[] neighbors;
                     neighbors = trainingData.findKNearestNeighbor(p, k);
+                    //Check if KNN is correct
                     if(mostFreqLabel(neighbors) != p.getLabel()){
                         errorCount++;
                     }
                 }
 
+                //Calculate error percentage
                 double errorPercent = (double) errorCount / validationData.length;
+                //Write to results file
                 PrintWriter pw = new PrintWriter(new FileOutputStream(new
                         File("results.txt"),true));
                 pw.println("K: " + k + ", Validation Error: " + errorPercent);
@@ -102,12 +112,15 @@ public class KNNClassifier {
                 // data file is test data, it contains data that we want to find KNN
                 Point[] testData;
 
+                //create test data array of points
                 testData = readData(args[INPUT_INDEX], false);
 
+                //Write to results file
                 PrintWriter pw = new PrintWriter(new FileOutputStream(new
                         File("results.txt"),true));
-
+                //For each test point
                 for(Point p : testData){
+                    //Find all of the neighbors using training data
                     Point[] neighbors;
                     neighbors = trainingData.findKNearestNeighbor(p, k);
 
@@ -173,23 +186,30 @@ public class KNNClassifier {
      * @return the most frequent label
      */
     public static int mostFreqLabel(Point[] points) {
-
+        //Initialize hashmap
         HashMap<Integer, Integer> countMap = new HashMap<>();
+        //Loop through all the points
         for(Point p : points){
+            //If map doesnt contain the label of a point
             if(!countMap.containsKey(p.getLabel())){
+                //Add a count of 1 to the label
                 countMap.put(p.getLabel(), 1);
             }else{
+                //If map does contain label increment the value
                 countMap.put(p.getLabel(), countMap.get(p.getLabel()) + 1);
             }
         }
-
+        //Create a pair for the max label and value
         Map.Entry<Integer, Integer> maxEntry = null;
-
+        //Loop through all the pairs in the map
         for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+            //Check if maxEntry has a value or if the current entry is bigger than the maxEntry
             if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                //Update maxEntry
                 maxEntry = entry;
             }
         }
+        //return the label of max valued pair
         return maxEntry.getKey();
     }
 

@@ -19,14 +19,14 @@ public class NaiveKNN {
      */
     public NaiveKNN() {
         KNN = new PriorityQueue<>();
-    }
+    } //Initialize KNN queue
 
     /**
      * Initialize training data points to be the given set of points
      * @param points the given set of points
      */
     public void build(Point[] points) {
-
+        //Sets the trainingPoints
         trainingPoints = points;
     }
 
@@ -75,11 +75,16 @@ public class NaiveKNN {
         //If there are not k neighbors add the point to the queue
         if(KNN.size() < k){
             KNN.add(p);
+            //Update the largest distance
             largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
         }else{
+            //Check if the distance of passed in point is less than the largest distance
             if(largestDisInKNN > p.getSquareDisToQueryPoint()){
+                //Remove top of heap
                 KNN.poll();
+                //Add new point
                 KNN.add(p);
+                //Update largest distance
                 largestDisInKNN = KNN.peek().getSquareDisToQueryPoint();
             }
         }
